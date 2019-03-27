@@ -23,6 +23,7 @@ char* hexToA(char*);
 BIGNUM* calcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
 BIGNUM* encrypt(char*, struct Public_Key, BN_CTX*);
 char* decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
+void task3(struct Private_Key, BN_CTX*);
 
 int main()
 {
@@ -62,15 +63,31 @@ int main()
         n = n
     };
 
-    // encrypt plain text
+    /*
+        Task 2
+        Encrypt a message
+    */
     c = encrypt("A top secret!", pub, ctx);
+    printBN("Ciphered text is", c);
 
-    // decrypt cyphertext
-    decrypted = decrypt(c, pem, ctx);
-    printf("%s", decrypted);
+    /*
+        Task 3
+        Decrypt a given message
+    */
+    task3(pem, ctx);
+    return 0;
+}
+
+void task3(struct Private_Key pem, BN_CTX* ctx)
+{
+    BIGNUM *c = BN_new();
+
+    char* ciphered = "90A81343DFE08415EDF79337CDE00457BAB56AFFA1B0CE5647BF9025665B396A";
+    BN_hex2bn(&c, ciphered);
+    char *decrypted = decrypt(c, pem, ctx);
+    printf("Task 3 decrypted plain text is: %s\n", decrypted);
 
     free(decrypted);
-    return 0;
 }
 
 int getHexVal(char c)
