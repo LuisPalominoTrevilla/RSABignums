@@ -17,12 +17,12 @@ struct Private_Key {
 };
 
 int getHexVal(char);
-void PrintBN(char*, BIGNUM*);
-char* AtoHex(char*);
-char* HexToA(char*);
-BIGNUM* CalcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
-BIGNUM* Encrypt(char*, struct Public_Key, BN_CTX*);
-char* Decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
+void printBN(char*, BIGNUM*);
+char* atoHex(char*);
+char* hexToA(char*);
+BIGNUM* calcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
+BIGNUM* encrypt(char*, struct Public_Key, BN_CTX*);
+char* decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
 
 int main()
 {
@@ -44,9 +44,12 @@ int main()
 
     BN_mul(n, p, q, ctx);
 
-    // Calc totient of n
-    totient = CalcTotient(p, q, ctx);
+    totient = calcTotient(p, q, ctx);
 
+    /*
+        Task 1
+        Calculate private key
+    */
     BN_mod_inverse(d, e, totient, ctx);
 
     struct Public_Key pub = {
@@ -59,11 +62,11 @@ int main()
         n = n
     };
 
-    // Encrypt plain text
-    c = Encrypt("A top secret!", pub, ctx);
+    // encrypt plain text
+    c = encrypt("A top secret!", pub, ctx);
 
-    // Decrypt cyphertext
-    decrypted = Decrypt(c, pem, ctx);
+    // decrypt cyphertext
+    decrypted = decrypt(c, pem, ctx);
     printf("%s", decrypted);
 
     free(decrypted);
@@ -82,14 +85,14 @@ int getHexVal(char c)
         return -1;
 }
 
-void PrintBN(char *msg, BIGNUM *a)
+void printBN(char *msg, BIGNUM *a)
 {
     char * number_str = BN_bn2hex(a);
     printf("%s %s\n", msg, number_str);
     OPENSSL_free(number_str);
 }
 
-char* AtoHex(char* asciiText)
+char* atoHex(char* asciiText)
 {
     int i;
     int n;
@@ -102,7 +105,7 @@ char* AtoHex(char* asciiText)
     return out;
 }
 
-char* HexToA(char* hexText)
+char* hexToA(char* hexText)
 {
     int n = strlen(hexText);
 
@@ -115,7 +118,7 @@ char* HexToA(char* hexText)
     return asciiStr;
 }
 
-BIGNUM* CalcTotient(BIGNUM *p, BIGNUM *q, BN_CTX *ctx)
+BIGNUM* calcTotient(BIGNUM *p, BIGNUM *q, BN_CTX *ctx)
 {
     BIGNUM *totient = BN_new();
     BIGNUM *one = BN_new();
@@ -132,13 +135,13 @@ BIGNUM* CalcTotient(BIGNUM *p, BIGNUM *q, BN_CTX *ctx)
     return totient;
 }
 
-BIGNUM* Encrypt(char* message, struct Public_Key pub, BN_CTX* ctx)
+BIGNUM* encrypt(char* message, struct Public_Key pub, BN_CTX* ctx)
 {
     BIGNUM *m = BN_new();
     BIGNUM *c = BN_new();
     char* hexString;
     
-    hexString = AtoHex(message);
+    hexString = atoHex(message);
 
     BN_hex2bn(&m, hexString);
     BN_mod_exp(c, m, pub.e, pub.n, ctx);
@@ -147,7 +150,7 @@ BIGNUM* Encrypt(char* message, struct Public_Key pub, BN_CTX* ctx)
     return c;
 }
 
-char* Decrypt(BIGNUM* c, struct Private_Key pem, BN_CTX* ctx)
+char* decrypt(BIGNUM* c, struct Private_Key pem, BN_CTX* ctx)
 {
     BIGNUM *m = BN_new();
     char* decrypted;
@@ -156,7 +159,7 @@ char* Decrypt(BIGNUM* c, struct Private_Key pem, BN_CTX* ctx)
 
     decrypted = BN_bn2hex(m);
 
-    char *ascii = HexToA(decrypted);
+    char *ascii = hexToA(decrypted);
     OPENSSL_free(decrypted);
 
     return ascii;
