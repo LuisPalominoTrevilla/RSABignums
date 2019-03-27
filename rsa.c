@@ -4,8 +4,6 @@
 
 #define NBITS 256
 
-// gcc bignum.c -o bignum -L/usr/local/opt/openssl/lib -I/usr/local/opt/openssl/include -lcrypto
-
 struct Public_Key {
     BIGNUM* e;
     BIGNUM* n;
