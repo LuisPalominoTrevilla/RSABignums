@@ -16,6 +16,60 @@ struct Private_Key {
     BIGNUM* n;
 };
 
+int getHexVal(char);
+void PrintBN(char*, BIGNUM*);
+char* AtoHex(char*);
+char* HexToA(char*);
+BIGNUM* CalcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
+BIGNUM* Encrypt(char*, struct Public_Key, BN_CTX*);
+char* Decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
+
+int main()
+{
+    BN_CTX *ctx = BN_CTX_new();
+
+    BIGNUM *p = BN_new();
+    BIGNUM *q = BN_new();
+    BIGNUM *n = BN_new();
+    BIGNUM *e = BN_new();
+    BIGNUM *d = BN_new();
+
+    BIGNUM *c;
+    BIGNUM *totient;
+    char* decrypted;
+
+    BN_hex2bn(&p, "F7E75FDC469067FFDC4E847C51F452DF");
+    BN_hex2bn(&q, "E85CED54AF57E53E092113E62F436F4F");
+    BN_hex2bn(&e, "0D88C3");
+
+    BN_mul(n, p, q, ctx);
+
+    // Calc totient of n
+    totient = CalcTotient(p, q, ctx);
+
+    BN_mod_inverse(d, e, totient, ctx);
+
+    struct Public_Key pub = {
+        e = e,
+        n = n
+    };
+
+    struct Private_Key pem = {
+        d = d,
+        n = n
+    };
+
+    // Encrypt plain text
+    c = Encrypt("A top secret!", pub, ctx);
+
+    // Decrypt cyphertext
+    decrypted = Decrypt(c, pem, ctx);
+    printf("%s", decrypted);
+
+    free(decrypted);
+    return 0;
+}
+
 int getHexVal(char c)
 {
     if(c >= '0' && c<= '9')
@@ -106,50 +160,4 @@ char* Decrypt(BIGNUM* c, struct Private_Key pem, BN_CTX* ctx)
     OPENSSL_free(decrypted);
 
     return ascii;
-}
-
-int main()
-{
-    BN_CTX *ctx = BN_CTX_new();
-
-    BIGNUM *p = BN_new();
-    BIGNUM *q = BN_new();
-    BIGNUM *n = BN_new();
-    BIGNUM *e = BN_new();
-    BIGNUM *d = BN_new();
-
-    BIGNUM *c;
-    BIGNUM *totient;
-    char* decrypted;
-
-    BN_hex2bn(&p, "F7E75FDC469067FFDC4E847C51F452DF");
-    BN_hex2bn(&q, "E85CED54AF57E53E092113E62F436F4F");
-    BN_hex2bn(&e, "0D88C3");
-
-    BN_mul(n, p, q, ctx);
-
-    // Calc totient of n
-    totient = CalcTotient(p, q, ctx);
-
-    BN_mod_inverse(d, e, totient, ctx);
-
-    struct Public_Key pub = {
-        e = e,
-        n = n
-    };
-
-    struct Private_Key pem = {
-        d = d,
-        n = n
-    };
-
-    // Encrypt plain text
-    c = Encrypt("A top secret!", pub, ctx);
-
-    // Decrypt cyphertext
-    decrypted = Decrypt(c, pem, ctx);
-    printf("%s", decrypted);
-
-    free(decrypted);
-    return 0;
 }
