@@ -24,7 +24,9 @@ BIGNUM* calcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
 BIGNUM* encrypt(char*, struct Public_Key, BN_CTX*);
 char* decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
 void task3(struct Private_Key, BN_CTX*);
+void task5(BN_CTX*);
 BIGNUM* sign(char*, struct Private_Key, BN_CTX*);
+int verifySignature(char*, char*, struct Public_Key, BN_CTX*);
 
 int main()
 {
@@ -87,7 +89,66 @@ int main()
     printBN("Signed message 1 =", s1);
     printBN("Signed message 2 =", s2);
 
+    /*
+        Task 5
+        Verify the message
+    */
+
+    // Verify previous signatures
+    int signatureValid;
+
+    signatureValid = verifySignature("2FA22F587025A7AE76B896F7390AF79443017DE885D08010188558274F3ACBF3", "I owe you $3000.", pub, ctx);
+    printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
+    signatureValid = verifySignature("2FA22F587025A7AE76B896F7390AF79443017DE885D08010188558274F3ACBF3", "I owe you $2000.", pub, ctx);
+    printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
+    
+    // Verify task's signature
+    task5(ctx);
+
     return 0;
+}
+
+void task5(BN_CTX* ctx) {
+    BIGNUM *n = BN_new();
+    BIGNUM *e = BN_new();
+    char *s = "643D6F34902D9C7EC90CB0B2BCA36C47FA37165C0005CAB026C0542CBDB6802F";
+
+    BN_hex2bn(&n, "AE1CD4DC432798D933779FBD46C6E1247F0CF1233595113AA51B450F18116115");
+    BN_hex2bn(&e, "010001");
+
+    struct Public_Key pub = {
+        e = e,
+        n = n
+    };
+
+    int signatureValid = verifySignature(s, "Launch a missle.", pub, ctx);
+    if (signatureValid) {
+        printf("Alice's signature is valid");
+    } else {
+        printf("Alice's signature is not valid");
+    }
+}
+
+int verifySignature(char* signature, char* message, struct Public_Key pub, BN_CTX* ctx)
+{
+    // Returns 0 if the signature is corrupted
+    // Returns 1 if signature is OK
+    BIGNUM *s = BN_new();
+    BIGNUM *new_h = BN_new();
+    char* orig_h;
+    orig_h = atoHex(message);
+    BN_hex2bn(&s, signature);
+
+    BN_mod_exp(new_h, s, pub.e, pub.n, ctx);
+    char * new_h_s = BN_bn2hex(new_h);
+
+    if (!strcmp(orig_h, new_h_s)) {
+        free(orig_h);
+        return 1;
+    } else {
+        free(orig_h);
+        return 0;
+    }
 }
 
 BIGNUM* sign(char* message, struct Private_Key pem, BN_CTX* ctx)
@@ -98,6 +159,7 @@ BIGNUM* sign(char* message, struct Private_Key pem, BN_CTX* ctx)
 
     hexString = atoHex(message);
     BN_hex2bn(&h, hexString);
+    free(hexString);
 
     BN_mod_exp(s, h, pem.d, pem.n, ctx);
 
