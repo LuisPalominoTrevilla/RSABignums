@@ -56,20 +56,29 @@ int main()
     */
     BN_mod_inverse(d, e, totient, ctx);
 
-    struct Public_Key pub = {
-        e = e,
-        n = n
-    };
-
-    struct Private_Key pem = {
-        d = d,
-        n = n
-    };
+    printBN("TASK 1\n\nPrivate key is", d);
 
     /*
         Task 2
         Encrypt a message
     */
+    BIGNUM *n_2 = BN_new();
+    BIGNUM *e_2 = BN_new();
+    BIGNUM *d_2 = BN_new();
+    BN_hex2bn(&n_2, "DCBFFE3E51F62E09CE7032E2677A78946A849DC4CDDE3A4D0CB81629242FB1A5");
+    BN_hex2bn(&e_2, "010001");
+    BN_hex2bn(&d_2, "74D806F9F3A62BAE331FFE3F0A68AFE35B3D2E4794148AACBC26AA381CD7D30D");
+
+    struct Public_Key pub = {
+        e = e_2,
+        n = n_2
+    };
+
+    struct Private_Key pem = {
+        d = d_2,
+        n = n_2
+    };
+
     c = encrypt("A top secret!", pub, ctx);
     printBN("Task2\nCiphered text is", c);
 
@@ -97,9 +106,9 @@ int main()
     // Verify previous signatures
     int signatureValid;
 
-    signatureValid = verifySignature("2FA22F587025A7AE76B896F7390AF79443017DE885D08010188558274F3ACBF3", "I owe you $3000.", pub, ctx);
+    signatureValid = verifySignature("55A4E7F17F04CCFE2766E1EB32ADDBA890BBE92A6FBE2D785ED6E73CCB35E4CB", "I owe you $3000.", pub, ctx);
     printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
-    signatureValid = verifySignature("2FA22F587025A7AE76B896F7390AF79443017DE885D08010188558274F3ACBF3", "I owe you $2000.", pub, ctx);
+    signatureValid = verifySignature("55A4E7F17F04CCFE2766E1EB32ADDBA890BBE92A6FBE2D785ED6E73CCB35E4CB", "I owe you $2000.", pub, ctx);
     printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
     
     // Verify task's signature
@@ -142,6 +151,8 @@ int verifySignature(char* signature, char* message, struct Public_Key pub, BN_CT
     BN_mod_exp(new_h, s, pub.e, pub.n, ctx);
     char * new_h_s = BN_bn2hex(new_h);
 
+    printf("%s\n%s\n", orig_h, new_h_s);
+
     if (!strcmp(orig_h, new_h_s)) {
         free(orig_h);
         return 1;
@@ -170,7 +181,7 @@ void task3(struct Private_Key pem, BN_CTX* ctx)
 {
     BIGNUM *c = BN_new();
 
-    char* ciphered = "90A81343DFE08415EDF79337CDE00457BAB56AFFA1B0CE5647BF9025665B396A";
+    char* ciphered = "8C0F971DF2F3672B28811407E2DABBE1DA0FEBBBDFC7DCB67396567EA1E2493F";
     BN_hex2bn(&c, ciphered);
     char *decrypted = decrypt(c, pem, ctx);
     printf("\nTask3\nDecrypted plain text is: %s\n", decrypted);
