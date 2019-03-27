@@ -24,6 +24,7 @@ BIGNUM* calcTotient(BIGNUM*, BIGNUM*, BN_CTX*);
 BIGNUM* encrypt(char*, struct Public_Key, BN_CTX*);
 char* decrypt(BIGNUM*, struct Private_Key, BN_CTX*);
 void task3(struct Private_Key, BN_CTX*);
+BIGNUM* sign(char*, struct Private_Key, BN_CTX*);
 
 int main()
 {
@@ -68,14 +69,39 @@ int main()
         Encrypt a message
     */
     c = encrypt("A top secret!", pub, ctx);
-    printBN("Ciphered text is", c);
+    printBN("Task2\nCiphered text is", c);
 
     /*
         Task 3
         Decrypt a given message
     */
     task3(pem, ctx);
+
+    /*
+        Task 4
+        Sign a message
+    */
+    BIGNUM* s1 = sign("I owe you $2000.", pem, ctx);
+    BIGNUM* s2 = sign("I owe you $3000.", pem, ctx);
+    printf("\nTask4\n");
+    printBN("Signed message 1 =", s1);
+    printBN("Signed message 2 =", s2);
+
     return 0;
+}
+
+BIGNUM* sign(char* message, struct Private_Key pem, BN_CTX* ctx)
+{
+    BIGNUM *h = BN_new();
+    BIGNUM *s = BN_new();
+    char* hexString;
+
+    hexString = atoHex(message);
+    BN_hex2bn(&h, hexString);
+
+    BN_mod_exp(s, h, pem.d, pem.n, ctx);
+
+    return s;
 }
 
 void task3(struct Private_Key pem, BN_CTX* ctx)
@@ -85,7 +111,7 @@ void task3(struct Private_Key pem, BN_CTX* ctx)
     char* ciphered = "90A81343DFE08415EDF79337CDE00457BAB56AFFA1B0CE5647BF9025665B396A";
     BN_hex2bn(&c, ciphered);
     char *decrypted = decrypt(c, pem, ctx);
-    printf("Task 3 decrypted plain text is: %s\n", decrypted);
+    printf("\nTask3\nDecrypted plain text is: %s\n", decrypted);
 
     free(decrypted);
 }
