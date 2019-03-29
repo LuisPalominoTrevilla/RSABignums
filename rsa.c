@@ -97,20 +97,20 @@ int main()
     printBN("Signed message 1 =", s1);
     printBN("Signed message 2 =", s2);
 
-    /*
-        Task 5
-        Verify the message
-    */
-
     // Verify previous signatures
     int signatureValid;
-
     signatureValid = verifySignature("55A4E7F17F04CCFE2766E1EB32ADDBA890BBE92A6FBE2D785ED6E73CCB35E4CB", "I owe you $3000.", &pub);
     printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
     signatureValid = verifySignature("55A4E7F17F04CCFE2766E1EB32ADDBA890BBE92A6FBE2D785ED6E73CCB35E4CB", "I owe you $2000.", &pub);
     printf("The signature %s\n", (signatureValid)? "is valid":"is not valid" );
     
+    /*
+        Task 5
+        Verify the message
+    */
+
     // Verify task's signature
+    printf("\nTask5\n");
     task5();
 
     /*
