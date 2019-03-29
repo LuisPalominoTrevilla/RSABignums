@@ -167,7 +167,6 @@ int verifySignature(char* signature, char* message, struct Public_Key pub)
     BN_mod_exp(new_h, s, pub.e, pub.n, ctx);
     char * new_h_s = BN_bn2hex(new_h);
 
-    printf("%s\n", orig_h);
     int res = !strcmp(orig_h, new_h_s);
     OPENSSL_free(new_h_s);
     free(orig_h);
